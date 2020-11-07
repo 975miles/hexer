@@ -1,0 +1,18 @@
+{
+  "name": "hexer",
+  "version": "1.0.0",
+  "description": "discord box to give users roles with a personalised colour and name",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ."
+  },
+  "keywords": [],
+  "author": "flynn",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^12.4.1",
+    "sequelize": "^6.3.5",
+    "sqlite3": "^5.0.0"
+  }
+}

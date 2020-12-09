@@ -1,5 +1,5 @@
 # hexer
-
+![hexer#2960](hexer.png)  
 [Add the bot](https://discord.com/api/oauth2/authorize?client_id=774389928422539266&permissions=268435456&scope=bot)  
 [Support](https?//discord.com/users/106068236000329728)
 

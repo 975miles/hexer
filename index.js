@@ -4,6 +4,7 @@ const db = require('./models');
 const cfg = require('./cfg');
 const defaultPrefix = '!';
 const adminPermission = 'MANAGE_GUILD';
+const isAdmin = member => member.hasPermission(adminPermission);
 const maxRoleNameLength = 100;
 
 function checkGuild(guild) {
@@ -17,15 +18,18 @@ function checkGuild(guild) {
         guild.roles.fetch()
             .then(() => {
                 guild.members.fetch()
-                    .then(members => members.each(member => checkMember(member)))
+                    .then(members => members.each(member => console.log(member == undefined ? member : ':+1:')));
+                guild.members.fetch()
+                    .then(members => members.each(member => checkMember(member)));
             });
     });
 }
 
 function checkMember(member) {
-    return new Promise(async () => { //for each member of the guild
+    return new Promise(async (res, rej) => { //for each member of the guild
         if (member.user.bot) return; //ignore this user if it's a bot
-        if (await db.Role.findOne({where: {guild: member.guild.id, user: member.id}}) == null) { //if this user doesn't have a colour role,
+        let roleFound = await db.Role.findOne({where: {guild: member.guild.id, user: member.id}});
+        if (roleFound == null) { //if this user doesn't have a colour role,
             member.guild.roles.create({ //create a new role in the guild
                 data: {
                     name: `${member.user.username}'s hexer role`,
@@ -33,15 +37,34 @@ function checkMember(member) {
                 },
                 reason: `colour role for ${member.user.username}`
             })
-                .then(role => {
-                    member.roles.add(role) //give this new role to the member
-                    db.Role.create({ //store this role in the database
+                .then(async role => {
+                    member.roles.add(role); //give this new role to the member
+                    if (db.Role.count({where: {
+                        user: member.id,
+                        guild: member.guild.id
+                    }}) > 0)
+                        db.role.destroy({where: {
+                            user: member.id,
+                            guild: member.guild.id
+                        }});
+                    res(await db.Role.create({ //store this role in the database
                         role: role.id,
                         user: member.id,
                         guild: member.guild.id
-                    });
+                    }));
                 });
-        }
+        } else
+            member.guild.roles.fetch(roleFound.role)
+                .then(async role => {
+                    if (role == null) {
+                        await db.Role.destroy({where: {guild: member.guild.id, user: member.id}});
+                        res(await (checkMember(member)));
+                    } else {
+                        res(roleFound);
+                        if (!member.roles.cache.some(roleChecking => roleChecking.id == roleFound.role))
+                            member.roles.add(role);
+                    }
+                });
     });
 }
 
@@ -73,6 +96,7 @@ ${prefix}help - this
 ${prefix}editrole [hex code] [role name] - edit your hexer role
 ${prefix}setprefix [new prefix] - sets the bot's prefix for this server
 ${prefix}forceresetrole - forces a reset of your hexer role if the bot just doesnt seem to be working
+${prefix}clearunusedroles - deletes the hexer roles for all users who've left the server
 \`\`\`
                 `);
                 break;
@@ -82,10 +106,11 @@ ${prefix}forceresetrole - forces a reset of your hexer role if the bot just does
                     if (/^#[0-9A-F]{6}$/i.test(args[0])) {
                         if (args[0] == '#000000')
                             args[0] = '#000001';
-                        let userRole = await db.Role.findOne({where: {guild: msg.guild.id, user: msg.member.id}});
+                        let userRole = await checkMember(msg.member);
+                        //let userRole = await db.Role.findOne({where: {guild: msg.guild.id, user: msg.member.id}});
                         msg.guild.roles.fetch(userRole.role)
                             .then(role => {
-                                let roleName = `${args.slice(1).join(' ')}${args.length > 0 ? ' ' : ''}(${args[0]})`;
+                                let roleName = `${args.slice(1).join(' ')}${args.length > 0 ? ' ' : ''}${args[0]}`;
                                 if (roleName.length > maxRoleNameLength)
                                     msg.reply(`That's too long! \`${maxRoleNameLength}\` is the maximum length for a discord role's name.`);
                                 else
@@ -100,7 +125,7 @@ ${prefix}forceresetrole - forces a reset of your hexer role if the bot just does
                 break;
 
             case 'setprefix':
-                if (msg.member.hasPermission(adminPermission)) {
+                if (isAdmin(msg.member)) {
                     if (args[0]) {
                         await db.Prefix.update({prefix: args.join(' ')}, {where: {guild: msg.guild.id}});
                         msg.reply('Done!');
@@ -112,11 +137,30 @@ ${prefix}forceresetrole - forces a reset of your hexer role if the bot just does
             
             case 'forceresetrole':
                 let userRole = await db.Role.findOne({where: {guild: msg.guild.id, user: msg.member.id}});
-                msg.guild.roles.fetch(userRole.role).then(role => role.delete());
+                if (userRole != null)
+                    msg.guild.roles.fetch(userRole.role).then(role => role.delete());
                 await db.Role.destroy({where: {guild: msg.guild.id, user: msg.member.id}});
                 checkMember(msg.member);
                 msg.reply('Attempted hexer role reset.');
                 break;
+
+            case 'clearunusedroles':
+                if (isAdmin(msg.member)) {
+                    msg.guild.roles.fetch() //fetch the guild's roles
+                        .then(roles => roles.cache.each(async role => { //for every role in the guild
+                            let roleInfo = await db.Role.findOne({where: {role: role.id}});
+                            if (roleInfo != null) { //if this role is a hexer role
+                                if (!role.members.some(member => member.user.id == roleInfo.user)) {
+                                    db.Role.destroy({where: {role: role.id}});
+                                    role.delete();
+                                }
+                            }
+                        }))
+                        .then(() => msg.reply('Attempted to clear roles of users who\'ve left.'));
+                } else
+                    msg.reply(`You need the ${adminPermission} permission to clear unused roles!`);
+                break;
+
             
             case 'ping':
                 msg.channel.send('yep, i\'m here');

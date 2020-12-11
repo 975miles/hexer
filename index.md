@@ -16,5 +16,5 @@ Since the role limit for discord servers is 250, you should only use this bot in
 `!help` : show these commands  
 `!editrole [hex code] [role name]` : edit your hexer role (e.g. `!editrole #6be6ff light blue`)  
 `!setprefix [new prefix]` : sets the bot's prefix for this server (only users with the "Manage Server" permission may use this)  
-`!forceresetrole` : forces a reset of your hexer role if the bot just doesnt seem to be working
-`!clearunusedroles` : deletes the hexer roles for all users who've left the server
+`!forceresetrole` : forces a reset of your hexer role if the bot just doesnt seem to be working  
+`!clearunusedroles` : deletes the hexer roles for all users who've left the server  

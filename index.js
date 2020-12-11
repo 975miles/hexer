@@ -18,8 +18,6 @@ function checkGuild(guild) {
         guild.roles.fetch()
             .then(() => {
                 guild.members.fetch()
-                    .then(members => members.each(member => console.log(member == undefined ? member : ':+1:')));
-                guild.members.fetch()
                     .then(members => members.each(member => checkMember(member)));
             });
     });

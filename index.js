@@ -108,7 +108,7 @@ ${prefix}clearunusedroles - deletes the hexer roles for all users who've left th
                         //let userRole = await db.Role.findOne({where: {guild: msg.guild.id, user: msg.member.id}});
                         msg.guild.roles.fetch(userRole.role)
                             .then(role => {
-                                let roleName = `⎔ ${args.slice(1).join(' ')}${args.length > 0 ? ' ' : ''}${args[0]}`;
+                                let roleName = `${args.slice(1).join(' ')} ⎔`;
                                 if (roleName.length > maxRoleNameLength)
                                     msg.reply(`That's too long! \`${maxRoleNameLength}\` is the maximum length for a discord role's name.`);
                                 else

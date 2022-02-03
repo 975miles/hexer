@@ -124,7 +124,7 @@ ${prefix}clearunusedroles - deletes the hexer roles for all users who've left th
                             })
                                 .catch(e => msg.reply('Could not find your role. Try !forceresetrole first.'));
                     } else msg.reply(`Your first argument (\`${args[0]}\`) was not a hex code.`);
-                } else msg.reply(`Usage: \`${prefix}edit [hex code] [role name]\``);
+                } else msg.reply(`Usage: \`${prefix}editrole [hex code] [role name]\``);
                 break;
 
             case 'setprefix':

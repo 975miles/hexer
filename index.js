@@ -50,7 +50,8 @@ function checkMember(member) {
                         user: member.id,
                         guild: member.guild.id
                     }));
-                });
+                })
+                .catch(e => res(null));
         } else
             member.guild.roles.fetch(roleFound.role)
                 .then(async role => {
@@ -105,6 +106,8 @@ ${prefix}clearunusedroles - deletes the hexer roles for all users who've left th
                         if (args[0] == '#000000')
                             args[0] = '#000001';
                         let userRole = await checkMember(msg.member);
+                        if (userRole == null)
+                            return msg.reply('Could not create your role. Do I have the "Manage Roles" permission?');
                         //let userRole = await db.Role.findOne({where: {guild: msg.guild.id, user: msg.member.id}});
                         msg.guild.roles.fetch(userRole.role)
                             .then(role => {
@@ -116,8 +119,10 @@ ${prefix}clearunusedroles - deletes the hexer roles for all users who've left th
                                         color: args[0],
                                         name: roleName
                                     })
-                                        .then(() => msg.reply(':+1:'));
-                            });
+                                        .then(() => msg.reply(':+1:'))
+                                        .catch(e => msg.reply('Could not edit your role. Is it above mine?'));
+                            })
+                                .catch(e => msg.reply('Could not find your role. Try !forceresetrole first.'));
                     } else msg.reply(`Your first argument (\`${args[0]}\`) was not a hex code.`);
                 } else msg.reply(`Usage: \`${prefix}edit [hex code] [role name]\``);
                 break;

@@ -1,5 +1,5 @@
 const { Client, Intents } = require('discord.js');
-const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MEMBERS] });
 const db = require('./models');
 const cfg = require('./cfg');
 const defaultPrefix = '!';

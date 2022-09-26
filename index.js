@@ -1,5 +1,5 @@
-const Discord = require('discord.js');
-const bot = new Discord.Client();
+const { Client, Intents } = require('discord.js');
+const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 const db = require('./models');
 const cfg = require('./cfg');
 const defaultPrefix = '!';
@@ -75,8 +75,8 @@ bot.on('ready', () => {
 bot.on('guildMemberAdd', member => checkMember(member));
 bot.on('guildCreate', guild => checkGuild(guild))
 
-bot.on('message', async msg => {
-    if (msg.channel.type != 'text' || msg.author.bot) return; //ignore this message if it isn't sent in a text channel of a server or if it's sent by a bot user
+bot.on('messageCreate', async msg => {
+    if (!msg.inGuild() || msg.author.bot) return; //ignore this message if it isn't sent in a text channel of a server or if it's sent by a bot user
 
     let prefix = (await db.Prefix.findOne({where: {guild: msg.guild.id}})).prefix;
     if (msg.content.startsWith(prefix)) {

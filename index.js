@@ -1,5 +1,5 @@
-const { Client, Intents } = require('discord.js');
-const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MEMBERS] });
+const { Client, Intents, GatewayIntentBits } = require('discord.js');
+const bot = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 const db = require('./models');
 const cfg = require('./cfg');
 const defaultPrefix = '!';
@@ -29,10 +29,9 @@ function checkMember(member) {
         let roleFound = await db.Role.findOne({where: {guild: member.guild.id, user: member.id}});
         if (roleFound == null) { //if this user doesn't have a colour role,
             member.guild.roles.create({ //create a new role in the guild
-                data: {
-                    name: `${member.user.username}'s hexer role`,
-                    permissions: 0
-                },
+                name: `${member.user.username}'s hexer role`,
+                color: Math.floor(Math.random() * 256 * 256 * 256),
+                permissions: "",
                 reason: `colour role for ${member.user.username}`
             })
                 .then(async role => {
@@ -51,7 +50,7 @@ function checkMember(member) {
                         guild: member.guild.id
                     }));
                 })
-                .catch(e => res(null));
+                .catch(e => {console.error(e); res(null);});
         } else
             member.guild.roles.fetch(roleFound.role)
                 .then(async role => {
@@ -141,7 +140,7 @@ ${prefix}clearunusedroles - deletes the hexer roles for all users who've left th
             case 'forceresetrole':
                 let userRole = await db.Role.findOne({where: {guild: msg.guild.id, user: msg.member.id}});
                 if (userRole != null)
-                    msg.guild.roles.fetch(userRole.role).then(role => role.delete());
+                    msg.guild.roles.fetch(userRole.role).then(role => {if (role != null) role.delete()});
                 await db.Role.destroy({where: {guild: msg.guild.id, user: msg.member.id}});
                 checkMember(msg.member);
                 msg.reply('Attempted hexer role reset.');

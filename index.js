@@ -1,10 +1,9 @@
-const { Client, Intents, GatewayIntentBits } = require('discord.js');
+const { Client, Intents, GatewayIntentBits, PermissionFlagsBits } = require('discord.js');
 const bot = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 const db = require('./models');
 const cfg = require('./cfg');
 const defaultPrefix = '!';
-const adminPermission = 'MANAGE_GUILD';
-const isAdmin = member => member.hasPermission(adminPermission);
+const isAdmin = member => member.permissions.has(PermissionFlagsBits.ManageGuild);
 const maxRoleNameLength = 100;
 
 function checkGuild(guild) {
@@ -136,7 +135,7 @@ ${prefix}clearunusedroles - deletes the hexer roles for all users who've left th
                     } else
                         msg.reply(`Usage: \`${prefix}setprefix [new prefix]\``);
                 } else
-                    msg.reply(`You need the ${adminPermission} permission to set the bot's prefix!`);
+                    msg.reply(`You need the manage server permission to set the bot's prefix!`);
                 break;
             
             case 'forceresetrole':
@@ -162,7 +161,7 @@ ${prefix}clearunusedroles - deletes the hexer roles for all users who've left th
                         }))
                         .then(() => msg.reply('Attempted to clear roles of users who\'ve left.'));
                 } else
-                    msg.reply(`You need the ${adminPermission} permission to clear unused roles!`);
+                    msg.reply(`You need the manage server permission to clear unused roles!`);
                 break;
 
             

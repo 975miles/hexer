@@ -101,6 +101,8 @@ ${prefix}clearunusedroles - deletes the hexer roles for all users who've left th
 
             case 'editrole':
                 if (args[0]) {
+                    if (!args[0].startsWith('#'))
+                        args[0] = '#' + args[0];
                     if (/^#[0-9A-F]{6}$/i.test(args[0])) {
                         if (args[0] == '#000000')
                             args[0] = '#000001';
